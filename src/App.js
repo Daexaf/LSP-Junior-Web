@@ -1,7 +1,7 @@
+// Import library dan model
 import "./App.css";
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useParams } from "react-router-dom";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Login from "./pages/Login";
@@ -10,6 +10,7 @@ import FormInput from "./component/FormInput";
 import ArtikelDetail from "./component/ArtikelDetail";
 import EditArtikel from "./component/EditArtikel";
 
+//komponen app
 const App = () => {
   return (
     <Router>

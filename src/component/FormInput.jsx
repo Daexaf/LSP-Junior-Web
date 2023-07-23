@@ -1,8 +1,10 @@
+// Import library dan komponen
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import API_URL from "../utils/utils";
 
+// Komponen FormInput
 const FormInput = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState({
@@ -12,6 +14,7 @@ const FormInput = () => {
   });
   console.log(content, "ini isi kontennya");
 
+  // Fungsi untuk mengirim data artikel ke server
   const handleInput = () => {
     const formData = new FormData();
     formData.append("judul", content.judul);
@@ -26,8 +29,12 @@ const FormInput = () => {
       .catch((err) => {
         console.log(err);
       });
+
+    navigate("/home");
+    window.location.reload();
   };
 
+  // Render form input artikel
   return (
     <div className="container p-10">
       <h2 className="text-center text-3xl">Halaman Input Artikel</h2>

@@ -1,9 +1,11 @@
+// Import library dan model
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_URL from "../utils/utils";
 import { useParams } from "react-router-dom";
 import Navbar from "./Navbar";
 
+// Komponen ArtikelDetail
 const ArtikelDetail = (props) => {
   const [data, setData] = useState();
   const [gambar, setGambar] = useState();
@@ -14,12 +16,17 @@ const ArtikelDetail = (props) => {
   const [id_A, setId_A] = useState();
   const { id } = useParams();
   const [komentarData, setKomentarData] = useState([]);
+  const [role, setRole] = useState("");
 
+  // Fungsi useEffect untuk mendapatkan data artikel dan komentar dari server saat komponen ini dipasang
   useEffect(() => {
     getArtikel();
     fetchKomentar();
+    setRole(localStorage.getItem("role"));
   }, []);
 
+  const isAdmin = localStorage.getItem("role") === "admin";
+  // Fungsi untuk mendapatkan data komentar dari server menggunakan axios
   const fetchKomentar = () => {
     axios
       .get(API_URL + `/komentars/${id}`)
@@ -32,6 +39,7 @@ const ArtikelDetail = (props) => {
       });
   };
 
+  // Fungsi untuk mendapatkan data artikel dari server menggunakan axios
   const getArtikel = () => {
     axios.get(API_URL + `/artikel/${id}`).then((res) => {
       console.log(res);
@@ -42,17 +50,13 @@ const ArtikelDetail = (props) => {
       setGambar(API_URL + "/" + ambilGambar.replace(/\\/g, "/"));
     });
   };
+  // Fungsi untuk mengubah data gambar menjadi URL yang valid
   const imageUrl = gambar ? decodeURIComponent(gambar) : "";
   const id_artikel = id_A;
-  // console.log(id_artikel, "ini datanya");
 
+  // Fungsi untuk menangani submit form komentar
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Lakukan logika untuk mengirim data komentar ke server
-    // Misalnya menggunakan axios.post() untuk mengirim permintaan POST ke endpoint yang sesuai
-    // dan menyimpan komentar baru ke dalam database
-
-    // Setelah pengiriman berhasil, Anda dapat mereset nilai input form
     const commentData = {
       id_artikel: id_artikel,
       nama,
@@ -63,20 +67,33 @@ const ArtikelDetail = (props) => {
     axios
       .post(API_URL + "/komentars", commentData)
       .then((res) => {
-        // Berhasil mengirim komentar ke server
         console.log("Komentar berhasil dikirim:", res.data);
-
-        // Setelah pengiriman berhasil, Anda dapat mereset nilai input form
         setNama("");
         setEmail("");
         setComment("");
+
+        fetchKomentar();
       })
       .catch((error) => {
-        // Menangani error jika terjadi kesalahan saat mengirim komentar
         console.error("Terjadi kesalahan saat mengirim komentar:", error);
       });
   };
 
+  //fungsi hapus komentar
+  const handleDeleteComment = (komentarId) => {
+    axios
+      .delete(API_URL + `/komentars/${komentarId}`)
+      .then((res) => {
+        console.log("Komentar berhasil dihapus:", res.data);
+        // Jika penghapusan berhasil, Anda dapat memperbarui daftar komentar dengan mengambil ulang data dari server
+        fetchKomentar();
+      })
+      .catch((error) => {
+        console.error("Terjadi kesalahan saat menghapus komentar:", error);
+      });
+  };
+
+  // Render tampilan komponen
   return (
     <>
       <Navbar />
@@ -98,62 +115,66 @@ const ArtikelDetail = (props) => {
             </div>
 
             <div className="w-full bg-green-300 text-black flex flex-col items-center pt-8 h-full">
-              {showForm ? (
-                <div className="max-w-sm bg-white rounded-lg overflow-hidden shadow-md">
-                  <form onSubmit={handleSubmit} className="p-4">
-                    <div className="mb-4">
-                      <label htmlFor="nama" className="font-bold">
-                        Nama:
-                      </label>
-                      <input
-                        type="text"
-                        id="nama"
-                        value={nama}
-                        onChange={(e) => setNama(e.target.value)}
-                        required
-                        className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mt-1 w-full"
-                      />
+              {!isAdmin && (
+                <div>
+                  {showForm ? (
+                    <div className="max-w-sm bg-white rounded-lg overflow-hidden shadow-md p-4">
+                      <form onSubmit={handleSubmit}>
+                        <div className="mb-4">
+                          <label htmlFor="nama" className="font-bold">
+                            Nama:
+                          </label>
+                          <input
+                            type="text"
+                            id="nama"
+                            value={nama}
+                            onChange={(e) => setNama(e.target.value)}
+                            required
+                            className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mt-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="email" className="font-bold">
+                            Email:
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mt-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="komentar" className="font-bold">
+                            Komentar:
+                          </label>
+                          <textarea
+                            id="komentar"
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            required
+                            className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mt-1 w-full h-24 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          Kirim Komentar
+                        </button>
+                      </form>
                     </div>
-                    <div className="mb-4">
-                      <label htmlFor="email" className="font-bold">
-                        Email:
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mt-1 w-full"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="komentar" className="font-bold">
-                        Komentar:
-                      </label>
-                      <textarea
-                        id="komentar"
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        required
-                        className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mt-1 w-full"
-                      />
-                    </div>
+                  ) : (
                     <button
-                      type="submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                      onClick={() => setShowForm(true)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      Kirim Komentar
+                      Tambah Komentar
                     </button>
-                  </form>
+                  )}
                 </div>
-              ) : (
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                >
-                  Tambah Komentar
-                </button>
               )}
 
               <h2 className="text-2xl font-bold mt-8">Komentar</h2>
@@ -167,7 +188,17 @@ const ArtikelDetail = (props) => {
                   >
                     <p className="font-bold text-xl">{komentar.nama}</p>
                     <p className="text-gray-500 text-xl">{komentar.email}</p>
-                    <p className="text-xl">{komentar.comment}</p>
+                    <p className="text-xl">
+                      {komentar.comment === "undefined" ? "" : komentar.comment}
+                    </p>
+                    {isAdmin && ( // Hanya tampilkan tombol Hapus jika admin yang login
+                      <button
+                        className="text-red-600 font-medium mt-2"
+                        onClick={() => handleDeleteComment(komentar.id)}
+                      >
+                        Hapus
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

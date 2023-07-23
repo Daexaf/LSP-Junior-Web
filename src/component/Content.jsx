@@ -1,19 +1,23 @@
+// Import library dan model
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API_URL from "../utils/utils";
 import axios from "axios";
 
+// Komponen Content
 export default function Content() {
   const [role, setRole] = useState();
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const [data, setData] = useState([]);
 
+  // Fungsi useEffect untuk mendapatkan data artikel ketika komponen ini dipasang (mount)
   useEffect(() => {
     setRole(localStorage.getItem("role"));
     getData();
   }, []);
 
+  // Fungsi untuk mendapatkan data artikel dari server menggunakan axios
   const getData = () => {
     axios.get(API_URL + "/artikel").then((res) => {
       console.log(res);
@@ -22,10 +26,31 @@ export default function Content() {
     });
   };
 
+  // Fungsi untuk melakukan pencarian artikel berdasarkan judul
   const filteredData = data.filter((element) =>
     element.judul.toLowerCase().includes(query.toLowerCase())
   );
 
+  //fungsi hapus artikel
+  const handleDeleteArtikel = (id) => {
+    const confirmDelete = window.confirm(
+      "Apakah Anda yakin ingin menghapus artikel ini?"
+    );
+    if (!confirmDelete) {
+      return;
+    }
+    axios
+      .delete(API_URL + `/artikel/${id}`)
+      .then((res) => {
+        console.log("Artikel berhasil dihapus:", res.data);
+        setData((prevData) => prevData.filter((article) => article.id !== id)); // Setelah menghapus artikel, arahkan pengguna kembali ke halaman utama atau daftar artikel
+      })
+      .catch((error) => {
+        console.error("Terjadi kesalahan saat menghapus artikel:", error);
+      });
+  };
+
+  // Render tampilan komponen
   return (
     <>
       <h1 className="flex justify-center text-5xl p-5 bg-primary text-5xl font-bold text-slate-950">
@@ -106,14 +131,24 @@ export default function Content() {
                     Read More
                   </button>
                   {role === "admin" && (
-                    <button
-                      className="btn btn-success ml-3"
-                      onClick={() => {
-                        navigate(`/Edit/${element.id}`);
-                      }}
-                    >
-                      Edit
-                    </button>
+                    <>
+                      <button
+                        className="btn btn-success ml-3"
+                        onClick={() => {
+                          navigate(`/Edit/${element.id}`);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-500 ml-3"
+                        onClick={() => {
+                          handleDeleteArtikel(element.id);
+                        }}
+                      >
+                        Hapus Artikel
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

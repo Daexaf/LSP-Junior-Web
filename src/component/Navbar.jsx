@@ -1,7 +1,8 @@
+// Import library dan komponen
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API_URL from "../utils/utils";
 
+// Komponen Navbar
 const Navbar = () => {
   const Navigate = useNavigate();
   const [role, setRole] = useState();
@@ -11,11 +12,18 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
+    const confirmLogout = window.confirm("Apakah Anda yakin ingin keluar?");
+    if (!confirmLogout) {
+      return; // Cancel deletion if the user clicks Cancel
+    }
     localStorage.removeItem("role");
     Navigate("/home");
+    window.location.reload();
   };
 
+  // Cek apakah sudah login berdasarkan role di local storage
   const isLoggedIn = localStorage.getItem("role") === "admin";
+  // Render komponen Navbar
   return (
     <>
       <nav className="bg-primary fixed w-full z-20 top-0 left-0 border-b border-gray-200 dark:border-gray-600">
